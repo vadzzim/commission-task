@@ -38,8 +38,8 @@ class FormatterTest extends TestCase
     public function dataProviderForAddTesting(): array
     {
         return [
-            'fraction digits' => ['12345.1234', 'EUR', '12345.13'],
-            'fraction digits' => ['12345.1234', 'JPY', '12346'],
+            'fraction digits 1' => ['12345.1234', 'EUR', '12345.13'],
+            'fraction digits 2' => ['12345.1234', 'JPY', '12346'],
             'rounded up' => ['0.023', 'EUR', '0.03'],
         ];
     }
