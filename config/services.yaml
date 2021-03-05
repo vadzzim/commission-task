@@ -1,0 +1,80 @@
+parameters:
+    bcmath.scale: 4
+    deposit.business.fee: 0.03
+    deposit.private.fee: 0.03
+    withdraw.business.fee: 0.5
+    withdraw.private.fee: 0.3
+    withdraw.private.free.amount.per.week: 1000
+    withdraw.private.free.count.per.week: 3
+    rate.api.url: https://api.exchangeratesapi.io/latest
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+
+    App\CommissionTask\DataProvider\FixedRateDataProvider:
+        class: App\CommissionTask\DataProvider\FixedRateDataProvider
+
+    App\CommissionTask\DataProvider\RateDataProvider:
+        class: App\CommissionTask\DataProvider\RateDataProvider
+        arguments:
+            url: '%rate.api.url%'
+
+    deposit.business.strategy:
+        class: App\CommissionTask\Commission\FixedFeeStrategy
+        arguments:
+            fee: '%deposit.business.fee%'
+            scale: '%bcmath.scale%'
+
+    deposit.private.strategy:
+        class: App\CommissionTask\Commission\FixedFeeStrategy
+        arguments:
+            fee: '%deposit.private.fee%'
+            scale: '%bcmath.scale%'
+
+    withdraw.business.strategy:
+        class: App\CommissionTask\Commission\FixedFeeStrategy
+        arguments:
+            fee: '%withdraw.business.fee%'
+            scale: '%bcmath.scale%'
+
+    App\CommissionTask\Commission\RangeStrategy:
+        class: App\CommissionTask\Commission\RangeStrategy
+
+    App\CommissionTask\Commission\WeeklyRange:
+        class: App\CommissionTask\Commission\WeeklyRange
+
+    App\CommissionTask\DataProvider\TransactionDataProvider:
+        class: App\CommissionTask\DataProvider\TransactionDataProvider
+        arguments:
+            scale: '%bcmath.scale%'
+
+    withdraw.private.strategy:
+        class: App\CommissionTask\Commission\RangeStrategy
+        arguments:
+            rangeCalculator: '@App\CommissionTask\Commission\WeeklyRange'
+            dataProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
+            fee: '%withdraw.private.fee%'
+            freeAmountPerWeek: '%withdraw.private.free.amount.per.week%'
+            freeWithdrawCountPerWeek: '%withdraw.private.free.count.per.week%'
+            scale: '%bcmath.scale%'
+
+    App\CommissionTask\Service\CommissionCalculator:
+        class: App\CommissionTask\Service\CommissionCalculator
+        arguments:
+            depositPrivateStrategy: '@deposit.private.strategy'
+            depositBusinessStrategy: '@deposit.business.strategy'
+            withdrawPrivateStrategy: '@withdraw.private.strategy'
+            withdrawBusinessStrategy: '@withdraw.business.strategy'
+
+    App\CommissionTask\Formatter\Formatter:
+        class: App\CommissionTask\Formatter\Formatter
+
+    App\CommissionTask\Service\CommissionPrinter:
+        class: App\CommissionTask\Service\CommissionPrinter
+        arguments:
+            commissionCalculator: '@App\CommissionTask\Service\CommissionCalculator'
+            rateDataProvider: '@App\CommissionTask\DataProvider\FixedRateDataProvider'
+            transactionProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
+            formatter: '@App\CommissionTask\Formatter\Formatter'
