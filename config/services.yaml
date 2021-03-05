@@ -9,10 +9,6 @@ parameters:
     rate.api.url: https://api.exchangeratesapi.io/latest
 
 services:
-    _defaults:
-        autowire: true
-        autoconfigure: true
-
     App\CommissionTask\DataProvider\FixedRateDataProvider:
         class: App\CommissionTask\DataProvider\FixedRateDataProvider
 
@@ -75,6 +71,6 @@ services:
         class: App\CommissionTask\Service\CommissionPrinter
         arguments:
             commissionCalculator: '@App\CommissionTask\Service\CommissionCalculator'
-            rateDataProvider: '@App\CommissionTask\DataProvider\FixedRateDataProvider'
+            rateDataProvider: '@App\CommissionTask\DataProvider\RateDataProvider'
             transactionProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
             formatter: '@App\CommissionTask\Formatter\Formatter'
