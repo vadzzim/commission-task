@@ -10,10 +10,7 @@ use PHPUnit\Framework\TestCase;
 
 class FormatterTest extends TestCase
 {
-    /**
-     * @var Formatter
-     */
-    private $fmt;
+    private Formatter $fmt;
 
     public function setUp(): void
     {

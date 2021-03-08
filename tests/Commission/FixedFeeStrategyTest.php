@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Service;
+namespace App\CommissionTask\Tests\Commission;
 
 use App\CommissionTask\Commission\FixedFeeStrategy;
 use App\CommissionTask\Model\Operation;
@@ -16,7 +16,7 @@ class FixedFeeStrategyTest extends TestCase
 
     public function setUp(): void
     {
-        $this->strategy = new FixedFeeStrategy('0.03',4);
+        $this->strategy = new FixedFeeStrategy('0.03', 4);
     }
 
     /**

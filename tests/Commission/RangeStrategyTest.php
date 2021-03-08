@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Service;
+namespace App\CommissionTask\Tests\Commission;
 
 use App\CommissionTask\Model\Transaction;
 use App\CommissionTask\Model\Operation;

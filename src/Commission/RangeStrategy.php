@@ -35,8 +35,8 @@ class RangeStrategy implements CommissionInterface
     {
         $user = $transaction->user;
         $operation = $transaction->operation;
-        list($weekStart, $weekEnd) = $this->rangeCalculator->getRange($operation->date);
-        list($perWeekAmount, $perWeekCount) = $this->dataProvider->getTotalAmountAndTransactionCount(
+        [$weekStart, $weekEnd] = $this->rangeCalculator->getRange($operation->date);
+        [$perWeekAmount, $perWeekCount] = $this->dataProvider->getTotalAmountAndTransactionCount(
             $user->id, $operation->type, $weekStart, $weekEnd
         );
         $freeAmountPerWeekAfterConversion = bcmul($this->freeAmountPerWeek, $operation->rate, $this->scale);

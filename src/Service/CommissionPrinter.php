@@ -14,17 +14,20 @@ class CommissionPrinter
     private RateInterface $rateDataProvider;
     private RangeStrategyDataProviderInterface $transactionDataProvider;
     private Formatter $formatter;
+    private string $baseCurrency;
 
     public function __construct(
         CommissionCalculator $commissionCalculator,
         RateInterface $rateDataProvider,
         RangeStrategyDataProviderInterface $transactionDataProvider,
-        Formatter $formatter
+        Formatter $formatter,
+        string $baseCurrency //'EUR'
     ) {
         $this->commissionCalculator = $commissionCalculator;
         $this->rateDataProvider = $rateDataProvider;
         $this->transactionDataProvider = $transactionDataProvider;
         $this->formatter = $formatter;
+        $this->baseCurrency = $baseCurrency;
     }
 
     public function print(iterable $transactions): void
@@ -32,7 +35,8 @@ class CommissionPrinter
         $rates = $this->rateDataProvider->getRates();
 
         foreach ($transactions as $transaction) {
-            $rate = 'EUR' === $transaction->operation->currency ? '1' : (string) $rates[$transaction->operation->currency];
+            $rate = $this->baseCurrency === $transaction->operation->currency
+                ? '1' : (string) $rates[$transaction->operation->currency];
             $transaction->operation->rate = $rate;
 
             $value = $this->commissionCalculator->calculate($transaction);

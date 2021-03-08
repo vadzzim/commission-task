@@ -2,17 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Service;
+namespace App\CommissionTask\Tests\Commission;
 
 use App\CommissionTask\Commission\WeeklyRange;
 use PHPUnit\Framework\TestCase;
 
 class WeeklyRangeTest extends TestCase
 {
-    /**
-     * @var WeeklyRange
-     */
-    private $rangeCalculator;
+    private WeeklyRange $rangeCalculator;
 
     public function setUp(): void
     {
@@ -27,7 +24,6 @@ class WeeklyRangeTest extends TestCase
      */
     public function testGetRange(string $date, array $expectation)
     {
-
         $this->assertEquals(
             $expectation,
             $this->rangeCalculator->getRange($date)

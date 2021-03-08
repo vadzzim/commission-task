@@ -28,7 +28,7 @@ class CommissionCalculator
 
     public function calculate(Transaction $transaction): string
     {
-        $strategy = $transaction->operation->type.ucfirst($transaction->user->type).'Strategy';
+        $strategy = $transaction->operation->type . ucfirst($transaction->user->type) . 'Strategy';
 
         if (!property_exists($this, $strategy)) {
             $message = sprintf(

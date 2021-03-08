@@ -1,5 +1,6 @@
 parameters:
     bcmath.scale: 4
+    base.currency: EUR
     deposit.business.fee: 0.03
     deposit.private.fee: 0.03
     withdraw.business.fee: 0.5
@@ -9,9 +10,6 @@ parameters:
     rate.api.url: https://api.exchangeratesapi.io/latest
 
 services:
-    App\CommissionTask\DataProvider\FixedRateDataProvider:
-        class: App\CommissionTask\DataProvider\FixedRateDataProvider
-
     App\CommissionTask\DataProvider\RateDataProvider:
         class: App\CommissionTask\DataProvider\RateDataProvider
         arguments:
@@ -74,3 +72,4 @@ services:
             rateDataProvider: '@App\CommissionTask\DataProvider\RateDataProvider'
             transactionProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
             formatter: '@App\CommissionTask\Formatter\Formatter'
+            baseCurrency: '%base.currency%'
