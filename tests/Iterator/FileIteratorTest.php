@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Iterator;
 
+use App\Exception\NotValidCvsFileException;
 use App\Iterator\FileIterator;
 use App\Model\OperationType;
 use App\Model\UserType;
@@ -56,7 +57,7 @@ class FileIteratorTest extends TestCase
      */
     public function testRejectsInvalidRows(string $content)
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(NotValidCvsFileException::class);
 
         iterator_to_array($this->iterate($content));
     }

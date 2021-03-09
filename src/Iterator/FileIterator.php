@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Iterator;
 
+use App\Exception\NotValidCvsFileException;
 use App\Model\Amount;
 use App\Model\Currency;
 use App\Model\Operation;
@@ -27,7 +28,7 @@ class FileIterator implements \IteratorAggregate
     {
         $handel = fopen($this->file, 'rb');
         if (false === $handel) {
-            throw new \Exception(sprintf('Error Processing file "%s"', $this->file));
+            throw new NotValidCvsFileException(sprintf('Error Processing file "%s"', $this->file));
         }
 
         try {
@@ -42,7 +43,7 @@ class FileIterator implements \IteratorAggregate
                 }
 
                 if (self::COLUMN_COUNT !== count($row)) {
-                    throw new \Exception(sprintf('Line %d: expected %d columns, got %d in "%s"', $line, self::COLUMN_COUNT, count($row), implode(',', $row)));
+                    throw new NotValidCvsFileException(sprintf('Line %d: expected %d columns, got %d in "%s"', $line, self::COLUMN_COUNT, count($row), implode(',', $row)));
                 }
 
                 yield $this->createTransaction($line, ...$row);
@@ -72,7 +73,7 @@ class FileIterator implements \IteratorAggregate
                 )
             );
         } catch (\InvalidArgumentException $e) {
-            throw new \Exception(sprintf('Line %d: %s', $line, $e->getMessage()), 0, $e);
+            throw new NotValidCvsFileException(sprintf('Line %d: %s', $line, $e->getMessage()), 0, $e);
         }
     }
 }
