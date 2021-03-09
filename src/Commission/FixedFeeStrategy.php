@@ -11,10 +11,10 @@ final class FixedFeeStrategy implements CommissionInterface
     private string $fee;
     private int $scale;
 
-    public function __construct(string $fee, int $scale)
+    public function __construct(string $fee, int $bcmathScale)
     {
         $this->fee = $fee;
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     public function calculate(Transaction $transaction): string

@@ -19,9 +19,9 @@ class TransactionDataProvider implements TransactionHistoryInterface
      */
     private array $storage = [];
 
-    public function __construct(int $scale)
+    public function __construct(int $bcmathScale)
     {
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     public function addTransaction(Transaction $transaction): void

@@ -6,43 +6,50 @@ namespace App\Service;
 
 use App\Commission\CommissionInterface;
 use App\Exception\OperationUserException;
+use App\Model\OperationType;
 use App\Model\Transaction;
+use App\Model\UserType;
 
 class CommissionCalculator
 {
-    private CommissionInterface $depositPrivateStrategy;
-    private CommissionInterface $depositBusinessStrategy;
-    private CommissionInterface $withdrawPrivateStrategy;
-    private CommissionInterface $withdrawBusinessStrategy;
+    /**
+     * Each configured policy is its own immutable strategy instance.
+     * The key is the business identity of the policy, not the class
+     * of the strategy that happens to implement it.
+     *
+     * @var array<string, CommissionInterface>
+     */
+    private array $policies = [];
 
-    public function __construct(
-        CommissionInterface $depositPrivateStrategy,
-        CommissionInterface $depositBusinessStrategy,
-        CommissionInterface $withdrawPrivateStrategy,
-        CommissionInterface $withdrawBusinessStrategy
-    ) {
-        $this->depositPrivateStrategy = $depositPrivateStrategy;
-        $this->depositBusinessStrategy = $depositBusinessStrategy;
-        $this->withdrawPrivateStrategy = $withdrawPrivateStrategy;
-        $this->withdrawBusinessStrategy = $withdrawBusinessStrategy;
+    /**
+     * @param iterable<string, CommissionInterface> $policies keyed by "<operationType>.<userType>"
+     */
+    public function __construct(iterable $policies)
+    {
+        foreach ($policies as $key => $policy) {
+            $this->policies[$key] = $policy;
+        }
+
+        foreach (OperationType::all() as $operationType) {
+            foreach (UserType::all() as $userType) {
+                $key = self::policyKey($operationType, $userType);
+
+                if (!array_key_exists($key, $this->policies)) {
+                    throw new OperationUserException(sprintf('Combination OperationType "%s" and UserType "%s" not supported', $operationType->getValue(), $userType->getValue()));
+                }
+            }
+        }
     }
 
     public function calculate(Transaction $transaction): string
     {
-        $operationType = $transaction->getOperation()->getType()->getValue();
-        $userType = $transaction->getUser()->getType()->getValue();
-        $strategy = $operationType.ucfirst($userType).'Strategy';
+        $key = self::policyKey($transaction->getOperation()->getType(), $transaction->getUser()->getType());
 
-        if (!property_exists($this, $strategy)) {
-            $message = sprintf(
-                'Combination OperationType "%s" and UserType "%s" not supported',
-                $operationType,
-                $userType
-            );
+        return $this->policies[$key]->calculate($transaction);
+    }
 
-            throw new OperationUserException($message);
-        }
-
-        return $this->$strategy->calculate($transaction);
+    private static function policyKey(OperationType $operationType, UserType $userType): string
+    {
+        return $operationType->getValue().'.'.$userType->getValue();
     }
 }

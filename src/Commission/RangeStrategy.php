@@ -22,14 +22,14 @@ final class RangeStrategy implements CommissionInterface
         string $fee,
         string $freeAmountPerWeek,
         int $freeWithdrawCountPerWeek,
-        int $scale
+        int $bcmathScale
     ) {
         $this->rangeCalculator = $rangeCalculator;
         $this->history = $history;
         $this->fee = $fee;
         $this->freeAmountPerWeek = $freeAmountPerWeek;
         $this->freeWithdrawCountPerWeek = $freeWithdrawCountPerWeek;
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     public function calculate(Transaction $transaction): string
