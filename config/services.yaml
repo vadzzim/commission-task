@@ -10,66 +10,68 @@ parameters:
     rate.api.url: https://api.exchangeratesapi.io/latest
 
 services:
-    App\CommissionTask\DataProvider\RateDataProvider:
-        class: App\CommissionTask\DataProvider\RateDataProvider
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{Model,Kernel.php}'
+
+    App\Command\PrintCommissionCommand:
+        $baseCurrency: '%base.currency%'
+
+    App\DataProvider\RateDataProvider:
+        class: App\DataProvider\RateDataProvider
         arguments:
-            url: '%rate.api.url%'
+            $url: '%rate.api.url%'
 
     deposit.business.strategy:
-        class: App\CommissionTask\Commission\FixedFeeStrategy
+        class: App\Commission\FixedFeeStrategy
         arguments:
-            fee: '%deposit.business.fee%'
-            scale: '%bcmath.scale%'
+            $fee: '%deposit.business.fee%'
+            $scale: '%bcmath.scale%'
 
     deposit.private.strategy:
-        class: App\CommissionTask\Commission\FixedFeeStrategy
+        class: App\Commission\FixedFeeStrategy
         arguments:
-            fee: '%deposit.private.fee%'
-            scale: '%bcmath.scale%'
+            $fee: '%deposit.private.fee%'
+            $scale: '%bcmath.scale%'
 
     withdraw.business.strategy:
-        class: App\CommissionTask\Commission\FixedFeeStrategy
+        class: App\Commission\FixedFeeStrategy
         arguments:
-            fee: '%withdraw.business.fee%'
-            scale: '%bcmath.scale%'
+            $fee: '%withdraw.business.fee%'
+            $scale: '%bcmath.scale%'
 
-    App\CommissionTask\Commission\RangeStrategy:
-        class: App\CommissionTask\Commission\RangeStrategy
+    App\Commission\RangeStrategy:
+        class: App\Commission\RangeStrategy
 
-    App\CommissionTask\Commission\WeeklyRange:
-        class: App\CommissionTask\Commission\WeeklyRange
+    App\Commission\WeeklyRange:
+        class: App\Commission\WeeklyRange
 
-    App\CommissionTask\DataProvider\TransactionDataProvider:
-        class: App\CommissionTask\DataProvider\TransactionDataProvider
+    App\DataProvider\TransactionDataProvider:
+        class: App\DataProvider\TransactionDataProvider
         arguments:
-            scale: '%bcmath.scale%'
+            $scale: '%bcmath.scale%'
 
     withdraw.private.strategy:
-        class: App\CommissionTask\Commission\RangeStrategy
+        class: App\Commission\RangeStrategy
         arguments:
-            rangeCalculator: '@App\CommissionTask\Commission\WeeklyRange'
-            dataProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
-            fee: '%withdraw.private.fee%'
-            freeAmountPerWeek: '%withdraw.private.free.amount.per.week%'
-            freeWithdrawCountPerWeek: '%withdraw.private.free.count.per.week%'
-            scale: '%bcmath.scale%'
+            $rangeCalculator: '@App\Commission\WeeklyRange'
+            $dataProvider: '@App\DataProvider\TransactionDataProvider'
+            $fee: '%withdraw.private.fee%'
+            $freeAmountPerWeek: '%withdraw.private.free.amount.per.week%'
+            $freeWithdrawCountPerWeek: '%withdraw.private.free.count.per.week%'
+            $scale: '%bcmath.scale%'
 
-    App\CommissionTask\Service\CommissionCalculator:
-        class: App\CommissionTask\Service\CommissionCalculator
+    App\Service\CommissionCalculator:
+        class: App\Service\CommissionCalculator
         arguments:
-            depositPrivateStrategy: '@deposit.private.strategy'
-            depositBusinessStrategy: '@deposit.business.strategy'
-            withdrawPrivateStrategy: '@withdraw.private.strategy'
-            withdrawBusinessStrategy: '@withdraw.business.strategy'
+            $depositPrivateStrategy: '@deposit.private.strategy'
+            $depositBusinessStrategy: '@deposit.business.strategy'
+            $withdrawPrivateStrategy: '@withdraw.private.strategy'
+            $withdrawBusinessStrategy: '@withdraw.business.strategy'
 
-    App\CommissionTask\Formatter\Formatter:
-        class: App\CommissionTask\Formatter\Formatter
-
-    App\CommissionTask\Service\CommissionPrinter:
-        class: App\CommissionTask\Service\CommissionPrinter
-        arguments:
-            commissionCalculator: '@App\CommissionTask\Service\CommissionCalculator'
-            rateDataProvider: '@App\CommissionTask\DataProvider\RateDataProvider'
-            transactionProvider: '@App\CommissionTask\DataProvider\TransactionDataProvider'
-            formatter: '@App\CommissionTask\Formatter\Formatter'
-            baseCurrency: '%base.currency%'
+    App\Formatter\Formatter:
+        class: App\Formatter\Formatter

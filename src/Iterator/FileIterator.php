@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Iterator;
+namespace App\Iterator;
 
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\User;
+use App\Model\Operation;
+use App\Model\Transaction;
+use App\Model\User;
 
 class FileIterator implements \IteratorAggregate
 {

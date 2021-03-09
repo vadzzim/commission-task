@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Commission;
+namespace App\Commission;
 
-use App\CommissionTask\Model\Transaction;
+use App\Model\Transaction;
 
 interface CommissionInterface
 {

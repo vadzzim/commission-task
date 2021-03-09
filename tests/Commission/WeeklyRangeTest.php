@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Commission;
+namespace App\Tests\Commission;
 
-use App\CommissionTask\Commission\WeeklyRange;
+use App\Commission\WeeklyRange;
 use PHPUnit\Framework\TestCase;
 
 class WeeklyRangeTest extends TestCase

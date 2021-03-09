@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Commission;
+namespace App\Tests\Commission;
 
-use App\CommissionTask\Commission\FixedFeeStrategy;
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\User;
+use App\Commission\FixedFeeStrategy;
+use App\Model\Operation;
+use App\Model\Transaction;
+use App\Model\User;
 use PHPUnit\Framework\TestCase;
 
 class FixedFeeStrategyTest extends TestCase

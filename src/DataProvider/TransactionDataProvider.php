@@ -2,10 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\DataProvider;
+namespace App\DataProvider;
 
-use App\CommissionTask\Commission\RangeStrategyDataProviderInterface;
-use App\CommissionTask\Model\Transaction;
+use App\Model\Transaction;
 
 class TransactionDataProvider implements RangeStrategyDataProviderInterface
 {
@@ -50,7 +49,7 @@ class TransactionDataProvider implements RangeStrategyDataProviderInterface
         return [$sum, count($filtered)];
     }
 
-    public function addTransaction(Transaction $transaction)
+    public function addTransaction(Transaction $transaction): void
     {
         $this->storage[] = $transaction;
     }

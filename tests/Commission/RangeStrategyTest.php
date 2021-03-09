@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Commission;
+namespace App\Tests\Commission;
 
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\User;
-use App\CommissionTask\Commission\WeeklyRange;
-use App\CommissionTask\Commission\RangeStrategy;
-use App\CommissionTask\DataProvider\TransactionDataProvider;
+use App\Model\Transaction;
+use App\Model\Operation;
+use App\Model\User;
+use App\Commission\WeeklyRange;
+use App\Commission\RangeStrategy;
+use App\DataProvider\TransactionDataProvider;
 use PHPUnit\Framework\TestCase;
 
 class RangeStrategyTest extends TestCase

@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Service;
+namespace App\Service;
 
-use App\CommissionTask\Commission\CommissionInterface;
-use App\CommissionTask\Model\Transaction;
+use App\Commission\CommissionInterface;
+use App\Model\Transaction;
 
 class CommissionCalculator
 {
@@ -28,7 +28,7 @@ class CommissionCalculator
 
     public function calculate(Transaction $transaction): string
     {
-        $strategy = $transaction->operation->type . ucfirst($transaction->user->type) . 'Strategy';
+        $strategy = $transaction->operation->type.ucfirst($transaction->user->type).'Strategy';
 
         if (!property_exists($this, $strategy)) {
             $message = sprintf(

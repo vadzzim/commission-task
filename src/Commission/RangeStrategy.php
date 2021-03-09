@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Commission;
+namespace App\Commission;
 
-use App\CommissionTask\Model\Transaction;
+use App\DataProvider\RangeStrategyDataProviderInterface;
+use App\Model\Transaction;
 
 class RangeStrategy implements CommissionInterface
 {
