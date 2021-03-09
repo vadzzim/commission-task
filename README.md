@@ -37,5 +37,7 @@ So if you decide print commission from another source. It's easy configured.
 You can configure `CommissionPrinter` to use `FixedRateDataProvider` if you'd like to test something with hardcoded rates. 
 
 ## Commands:
+- `docker build -t commission-task .`
+- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php application.php app:print-commission assets/input.csv`
 - `composer run phpunit` - run phpunit;
 - `php application.php app:print-commission assets/input.csv` - print commissions;
