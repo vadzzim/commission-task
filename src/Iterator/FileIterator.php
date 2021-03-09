@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Iterator;
 
+use App\Exception\NotValidCvsFileException;
 use App\Model\Operation;
 use App\Model\Transaction;
 use App\Model\User;
@@ -29,8 +30,12 @@ class FileIterator implements \IteratorAggregate
         while (false === feof($handel)) {
             $row = fgetcsv($handel);
 
-            if (!is_array($row) || self::COLUMN_COUNT !== count($row)) {
-                throw new \Exception('Not valid line');
+            if (!is_array($row)) {
+                throw new NotValidCvsFileException('An invalid handle is supplied or other errors, including end of file');
+            }
+
+            if (self::COLUMN_COUNT !== count($row)) {
+                throw new NotValidCvsFileException(sprintf('Not valid line "%s"', join(',', $row)));
             }
 
             list($date, $userId, $userType, $operationType, $operationAmount, $operationCurrency) = $row;

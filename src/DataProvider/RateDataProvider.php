@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\DataProvider;
 
+use App\Exception\NoRateException;
+
 class RateDataProvider implements RateInterface
 {
     private string $url;
@@ -23,10 +25,15 @@ class RateDataProvider implements RateInterface
         $response = file_get_contents($this->url);
 
         if (false === $response) {
-            throw new \Exception(sprintf('No response API "%s"', $this->url));
+            throw new NoRateException(sprintf('API call failure "%s"', $this->url));
         }
 
         $json = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+
+        if (!key_exists('rates', $json) || !is_array($json['rates'])) {
+            throw new NoRateException(sprintf('API call failure "%s". No "rates" key.', $this->url));
+        }
+
         $this->cache = $json['rates'];
 
         return $this->cache;

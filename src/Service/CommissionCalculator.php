@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Commission\CommissionInterface;
+use App\Exception\OperationUserException;
 use App\Model\Transaction;
 
 class CommissionCalculator
@@ -37,7 +38,7 @@ class CommissionCalculator
                 $transaction->user->type
             );
 
-            throw new \Exception($message);
+            throw new OperationUserException($message);
         }
 
         return $this->$strategy->calculate($transaction);

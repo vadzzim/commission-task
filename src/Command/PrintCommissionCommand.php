@@ -6,6 +6,10 @@ namespace App\Command;
 
 use App\DataProvider\RangeStrategyDataProviderInterface;
 use App\DataProvider\RateInterface;
+use App\Exception\FileNotExistsException;
+use App\Exception\NoRateException;
+use App\Exception\NotValidCvsFileException;
+use App\Exception\OperationUserException;
 use App\Formatter\Formatter;
 use App\Iterator\FileIterator;
 use App\Service\CommissionCalculator;
@@ -51,27 +55,55 @@ class PrintCommissionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $pathToFile = $input->getArgument('pathToFile');
-        $transactions = new FileIterator($pathToFile);
-        $rates = $this->rateDataProvider->getRates();
+        try {
+            $pathToFile = $input->getArgument('pathToFile');
 
-        foreach ($transactions as $transaction) {
-            $rate = $this->baseCurrency === $transaction->operation->currency
-                ? '1' : (string) $rates[$transaction->operation->currency];
-            $transaction->operation->rate = $rate;
-            $value = $this->commissionCalculator->calculate($transaction);
-            $this->transactionDataProvider->addTransaction($transaction);
-            $fmtValue = $this->formatter->formatCurrency($value, $transaction->operation->currency);
+            if (!file_exists($pathToFile)) {
+                throw new FileNotExistsException(sprintf('File "%s" does not exist', $pathToFile));
+            }
 
-            $output->writeln($fmtValue);
+            $transactions = new FileIterator($pathToFile);
+            $rates = $this->rateDataProvider->getRates();
+
+            foreach ($transactions as $transaction) {
+                if (
+                    $this->baseCurrency !== $transaction->operation->currency
+                    && !isset($rates[$transaction->operation->currency])
+                ) {
+                    throw new NoRateException(sprintf('No rate for currency "%s"', $transaction->operation->currency));
+                }
+
+                $rate = $this->baseCurrency === $transaction->operation->currency
+                    ? '1' : (string) $rates[$transaction->operation->currency];
+                $transaction->operation->rate = $rate;
+                $value = $this->commissionCalculator->calculate($transaction);
+                $this->transactionDataProvider->addTransaction($transaction);
+                $fmtValue = $this->formatter->formatCurrency($value, $transaction->operation->currency);
+
+                $output->writeln($fmtValue);
+            }
+        } catch (OperationUserException $e) {
+            $output->writeln($e);
+
+            return Command::FAILURE;
+        } catch (NotValidCvsFileException $e) {
+            $output->writeln($e);
+
+            return Command::FAILURE;
+        } catch (FileNotExistsException $e) {
+            $output->writeln($e);
+
+            return Command::FAILURE;
+        } catch (NoRateException $e) {
+            $output->writeln($e);
+
+            return Command::FAILURE;
+        } catch (\Exception $e) {
+            $output->writeln($e);
+
+            return Command::FAILURE;
         }
 
-        // return this if there was no problem running the command
-        // (it's equivalent to returning int(0))
         return Command::SUCCESS;
-
-        // or return this if some error happened during the execution
-        // (it's equivalent to returning int(1))
-        // return Command::FAILURE;
     }
 }
