@@ -4,6 +4,7 @@ You can find parameters for commissions fee and limits in `config/services.yml`
 ```
 parameters:
     bcmath.scale: 4
+    base.currency: EUR
     deposit.business.fee: 0.03
     deposit.private.fee: 0.03
     withdraw.business.fee: 0.5
@@ -37,7 +38,4 @@ You can configure `CommissionPrinter` to use `FixedRateDataProvider` if you'd li
 
 ## Commands:
 - `composer run phpunit` - run phpunit;
-- `php script.php input.csv` - run printer script;
-
-## What can be improved?
-I missed logic for Base Currency(
+- `php application.php app:print-commission assets/input.csv` - print commissions;

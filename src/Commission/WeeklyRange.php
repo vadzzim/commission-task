@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Commission;
+namespace App\Commission;
 
 class WeeklyRange implements RangeCalculatorInterface
 {

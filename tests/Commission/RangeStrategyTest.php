@@ -2,14 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Commission;
+namespace App\Tests\Commission;
 
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\User;
-use App\CommissionTask\Commission\WeeklyRange;
-use App\CommissionTask\Commission\RangeStrategy;
-use App\CommissionTask\DataProvider\TransactionDataProvider;
+use App\Commission\RangeStrategy;
+use App\Commission\WeeklyRange;
+use App\DataProvider\TransactionDataProvider;
+use App\Model\Amount;
+use App\Model\Currency;
+use App\Model\Operation;
+use App\Model\OperationType;
+use App\Model\Transaction;
+use App\Model\User;
+use App\Model\UserType;
 use PHPUnit\Framework\TestCase;
 
 class RangeStrategyTest extends TestCase
@@ -19,7 +23,7 @@ class RangeStrategyTest extends TestCase
      * @param string $currency
      * @param string $rate
      * @param string $amountPerWeek
-     * @param int $withdrawCountPerWeek
+     * @param int    $withdrawCountPerWeek
      * @param string $expectation
      *
      * @dataProvider dataProviderForCalculateTesting
@@ -28,20 +32,26 @@ class RangeStrategyTest extends TestCase
     {
         $rangeCalculator = $this->createMock(WeeklyRange::class);
         $rangeCalculator->method('getRange')
-            ->willReturn(['from', 'to']);
+            ->willReturn(['2014-12-29', '2015-01-04']);
 
-        $dataProvider = $this->createMock(TransactionDataProvider::class);
-        $dataProvider->method('getTotalAmountAndTransactionCount')
+        $history = $this->createMock(TransactionDataProvider::class);
+        $history->method('getTotalAmountAndTransactionCount')
             ->willReturn([$amountPerWeek, $withdrawCountPerWeek]);
 
-        $strategy = new RangeStrategy($rangeCalculator,$dataProvider, '0.3', '1000.00',3, 4);
+        $strategy = new RangeStrategy($rangeCalculator, $history, '0.3', '1000.00', 3, 4);
 
         $this->assertEquals(
             $expectation,
             $strategy->calculate(
                 new Transaction(
-                    new User('1', 'business'),
-                    new Operation('2014-12-31', 'withdraw', $amount, $currency, $rate)
+                    new User('1', UserType::private()),
+                    new Operation(
+                        '2014-12-31',
+                        OperationType::withdraw(),
+                        Amount::fromString($amount),
+                        Currency::fromString($currency)
+                    ),
+                    $rate
                 )
             )
         );
@@ -60,7 +70,7 @@ class RangeStrategyTest extends TestCase
             'commission for the exceeded amount 5' => ['200.00', 'EUR', '1', '1000.00', 2, '0.6000'],
             'commission for the exceeded count 1' => ['200.00', 'EUR', '1', '700.00', 3, '0.6000'],
             'commission for the exceeded count 2' => ['200.00', 'EUR', '1', '700.00', 4, '0.6000'],
-            'commission in JPY' => ['3000000', 'EUR', '129.53', '0', 0, '8611.4100'],
+            'commission in JPY' => ['3000000', 'JPY', '129.53', '0', 0, '8611.4100'],
         ];
     }
 }

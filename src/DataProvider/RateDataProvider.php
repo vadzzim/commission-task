@@ -2,26 +2,39 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\DataProvider;
+namespace App\DataProvider;
+
+use Symfony\Contracts\HttpClient\Exception\ExceptionInterface as HttpClientExceptionInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class RateDataProvider implements RateInterface
 {
+    private HttpClientInterface $httpClient;
     private string $url;
+    private ?array $cache = null;
 
-    public function __construct(string $url)
+    public function __construct(HttpClientInterface $httpClient, string $url)
     {
+        $this->httpClient = $httpClient;
         $this->url = $url;
     }
 
     public function getRates(): array
     {
-        $response = file_get_contents($this->url);
-        if (false === $response) {
-            throw new \Exception(sprintf('No response API "%s"', $this->url));
+        if (null !== $this->cache) {
+            return $this->cache;
         }
 
-        $json = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            // toArray() also turns a non 2xx status and a non JSON body
+            // into a Symfony HttpClient exception.
+            $payload = $this->httpClient->request('GET', $this->url)->toArray();
+        } catch (HttpClientExceptionInterface $e) {
+            throw new \Exception(sprintf('API call failure "%s": %s', $this->url, $e->getMessage()), 0, $e);
+        }
 
-        return $json['rates'];
+        $this->cache = $payload['rates'];
+
+        return $this->cache;
     }
 }

@@ -2,56 +2,61 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\DataProvider;
+namespace App\DataProvider;
 
-use App\CommissionTask\Commission\RangeStrategyDataProviderInterface;
-use App\CommissionTask\Model\Transaction;
+use App\Model\OperationType;
+use App\Model\Transaction;
 
-class TransactionDataProvider implements RangeStrategyDataProviderInterface
+class TransactionDataProvider implements TransactionHistoryInterface
 {
     private int $scale;
+
+    /**
+     * Totals in the base currency, bucketed by "<userId>|<operationType>" and
+     * then by date, so a lookup never walks unrelated history.
+     *
+     * @var array<string, array<string, array{0: string, 1: int}>>
+     */
+    private array $storage = [];
 
     public function __construct(int $scale)
     {
         $this->scale = $scale;
     }
 
-    private array $storage = [];
+    public function addTransaction(Transaction $transaction): void
+    {
+        $operation = $transaction->getOperation();
+        $key = self::key($transaction->getUser()->getId(), $operation->getType());
+        $date = $operation->getDate();
+
+        [$sum, $count] = $this->storage[$key][$date] ?? ['0.00', 0];
+        $amount = bcdiv($operation->getAmount()->getValue(), $transaction->getRate(), $this->scale);
+
+        $this->storage[$key][$date] = [bcadd($sum, $amount, $this->scale), $count + 1];
+    }
 
     public function getTotalAmountAndTransactionCount(
         string $userId,
-        string $operationType,
+        OperationType $operationType,
         string $from,
         string $to
     ): array {
-        $filtered = array_filter($this->storage, function (Transaction $transaction) use (
-            $userId,
-            $operationType,
-            $from,
-            $to
-        ) {
-            $user = $transaction->user;
-            $operation = $transaction->operation;
-
-            return
-                $user->id === $userId
-                && $operation->type === $operationType
-                && $operation->date >= $from
-                && $operation->date <= $to
-            ;
-        });
-
         $sum = '0.00';
-        foreach ($filtered as $transaction) {
-            $operation = $transaction->operation;
-            $sum = bcadd($sum, bcdiv($operation->amount, $operation->rate, $this->scale), $this->scale);
+        $count = 0;
+
+        foreach ($this->storage[self::key($userId, $operationType)] ?? [] as $date => [$dailySum, $dailyCount]) {
+            if ($date >= $from && $date <= $to) {
+                $sum = bcadd($sum, $dailySum, $this->scale);
+                $count += $dailyCount;
+            }
         }
 
-        return [$sum, count($filtered)];
+        return [$sum, $count];
     }
 
-    public function addTransaction(Transaction $transaction)
+    private static function key(string $userId, OperationType $operationType): string
     {
-        $this->storage[] = $transaction;
+        return $userId.'|'.$operationType->getValue();
     }
 }

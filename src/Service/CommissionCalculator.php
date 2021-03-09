@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Service;
+namespace App\Service;
 
-use App\CommissionTask\Commission\CommissionInterface;
-use App\CommissionTask\Model\Transaction;
+use App\Commission\CommissionInterface;
+use App\Model\Transaction;
 
 class CommissionCalculator
 {
@@ -28,13 +28,15 @@ class CommissionCalculator
 
     public function calculate(Transaction $transaction): string
     {
-        $strategy = $transaction->operation->type . ucfirst($transaction->user->type) . 'Strategy';
+        $operationType = $transaction->getOperation()->getType()->getValue();
+        $userType = $transaction->getUser()->getType()->getValue();
+        $strategy = $operationType.ucfirst($userType).'Strategy';
 
         if (!property_exists($this, $strategy)) {
             $message = sprintf(
                 'Combination operationType "%s" userType "%s" not supported',
-                $transaction->operation->type,
-                $transaction->user->type
+                $operationType,
+                $userType
             );
 
             throw new \Exception($message);

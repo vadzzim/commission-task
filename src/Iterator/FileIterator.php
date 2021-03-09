@@ -2,11 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Iterator;
+namespace App\Iterator;
 
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\User;
+use App\Model\Amount;
+use App\Model\Currency;
+use App\Model\Operation;
+use App\Model\OperationType;
+use App\Model\Transaction;
+use App\Model\User;
+use App\Model\UserType;
 
 class FileIterator implements \IteratorAggregate
 {
@@ -23,24 +27,52 @@ class FileIterator implements \IteratorAggregate
     {
         $handel = fopen($this->file, 'rb');
         if (false === $handel) {
-            throw new \Exception('Error Processing');
+            throw new \Exception(sprintf('Error Processing file "%s"', $this->file));
         }
 
-        while (false === feof($handel)) {
-            $row = fgetcsv($handel);
+        try {
+            $line = 0;
 
-            if (!is_array($row) || self::COLUMN_COUNT !== count($row)) {
-                throw new \Exception('Not valid line');
+            while (false !== ($row = fgetcsv($handel))) {
+                ++$line;
+
+                // fgetcsv() reports a blank line as a single null field
+                if ([null] === $row) {
+                    continue;
+                }
+
+                if (self::COLUMN_COUNT !== count($row)) {
+                    throw new \Exception(sprintf('Line %d: expected %d columns, got %d in "%s"', $line, self::COLUMN_COUNT, count($row), implode(',', $row)));
+                }
+
+                yield $this->createTransaction($line, ...$row);
             }
-
-            list($date, $userId, $userType, $operationType, $operationAmount, $operationCurrency) = $row;
-
-            yield new Transaction(
-                new User($userId, $userType),
-                new Operation($date, $operationType, $operationAmount, $operationCurrency, '')
-            );
+        } finally {
+            fclose($handel);
         }
+    }
 
-        fclose($handel);
+    private function createTransaction(
+        int $line,
+        string $date,
+        string $userId,
+        string $userType,
+        string $operationType,
+        string $operationAmount,
+        string $operationCurrency
+    ): Transaction {
+        try {
+            return new Transaction(
+                new User($userId, UserType::fromString($userType)),
+                new Operation(
+                    $date,
+                    OperationType::fromString($operationType),
+                    Amount::fromString($operationAmount),
+                    Currency::fromString($operationCurrency)
+                )
+            );
+        } catch (\InvalidArgumentException $e) {
+            throw new \Exception(sprintf('Line %d: %s', $line, $e->getMessage()), 0, $e);
+        }
     }
 }

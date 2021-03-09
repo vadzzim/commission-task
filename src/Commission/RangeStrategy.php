@@ -2,14 +2,15 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Commission;
+namespace App\Commission;
 
-use App\CommissionTask\Model\Transaction;
+use App\DataProvider\TransactionHistoryInterface;
+use App\Model\Transaction;
 
-class RangeStrategy implements CommissionInterface
+final class RangeStrategy implements CommissionInterface
 {
     private RangeCalculatorInterface $rangeCalculator;
-    private RangeStrategyDataProviderInterface $dataProvider;
+    private TransactionHistoryInterface $history;
     private string $fee;
     private string $freeAmountPerWeek;
     private int $freeWithdrawCountPerWeek;
@@ -17,14 +18,14 @@ class RangeStrategy implements CommissionInterface
 
     public function __construct(
         RangeCalculatorInterface $rangeCalculator,
-        RangeStrategyDataProviderInterface $dataProvider,
+        TransactionHistoryInterface $history,
         string $fee,
         string $freeAmountPerWeek,
         int $freeWithdrawCountPerWeek,
         int $scale
     ) {
         $this->rangeCalculator = $rangeCalculator;
-        $this->dataProvider = $dataProvider;
+        $this->history = $history;
         $this->fee = $fee;
         $this->freeAmountPerWeek = $freeAmountPerWeek;
         $this->freeWithdrawCountPerWeek = $freeWithdrawCountPerWeek;
@@ -33,23 +34,23 @@ class RangeStrategy implements CommissionInterface
 
     public function calculate(Transaction $transaction): string
     {
-        $user = $transaction->user;
-        $operation = $transaction->operation;
-        [$weekStart, $weekEnd] = $this->rangeCalculator->getRange($operation->date);
-        [$perWeekAmount, $perWeekCount] = $this->dataProvider->getTotalAmountAndTransactionCount(
-            $user->id, $operation->type, $weekStart, $weekEnd
+        $operation = $transaction->getOperation();
+        $rate = $transaction->getRate();
+        [$weekStart, $weekEnd] = $this->rangeCalculator->getRange($operation->getDate());
+        [$perWeekAmount, $perWeekCount] = $this->history->getTotalAmountAndTransactionCount(
+            $transaction->getUser()->getId(), $operation->getType(), $weekStart, $weekEnd
         );
-        $freeAmountPerWeekAfterConversion = bcmul($this->freeAmountPerWeek, $operation->rate, $this->scale);
-        $perWeekAmountAfterConversion = bcmul($perWeekAmount, $operation->rate, $this->scale);
+        $freeAmountPerWeekAfterConversion = bcmul($this->freeAmountPerWeek, $rate, $this->scale);
+        $perWeekAmountAfterConversion = bcmul($perWeekAmount, $rate, $this->scale);
 
         if (
-            $perWeekAmountAfterConversion > $freeAmountPerWeekAfterConversion
+            bccomp($perWeekAmountAfterConversion, $freeAmountPerWeekAfterConversion, $this->scale) > 0
             || $perWeekCount >= $this->freeWithdrawCountPerWeek
         ) {
             // standard fee
-            $amountForFee = $operation->amount;
+            $amountForFee = $operation->getAmount()->getValue();
         } else {
-            $totalAmount = bcadd($perWeekAmountAfterConversion, $operation->amount, $this->scale);
+            $totalAmount = bcadd($perWeekAmountAfterConversion, $operation->getAmount()->getValue(), $this->scale);
 
             // commission is calculated only for the exceeded amount
             $amountForFee = bcsub($totalAmount, $freeAmountPerWeekAfterConversion, $this->scale);

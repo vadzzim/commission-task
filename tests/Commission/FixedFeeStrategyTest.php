@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Commission;
+namespace App\Tests\Commission;
 
-use App\CommissionTask\Commission\FixedFeeStrategy;
-use App\CommissionTask\Model\Operation;
-use App\CommissionTask\Model\Transaction;
-use App\CommissionTask\Model\User;
+use App\Commission\FixedFeeStrategy;
+use App\Model\Amount;
+use App\Model\Currency;
+use App\Model\Operation;
+use App\Model\OperationType;
+use App\Model\Transaction;
+use App\Model\User;
+use App\Model\UserType;
 use PHPUnit\Framework\TestCase;
 
 class FixedFeeStrategyTest extends TestCase
@@ -31,8 +35,13 @@ class FixedFeeStrategyTest extends TestCase
             $expectation,
             $this->strategy->calculate(
                 new Transaction(
-                    new User('1', 'business'),
-                    new Operation('2014-12-31', 'withdraw', $amount, 'EUR', '1')
+                    new User('1', UserType::business()),
+                    new Operation(
+                        '2014-12-31',
+                        OperationType::withdraw(),
+                        Amount::fromString($amount),
+                        Currency::fromString('EUR')
+                    )
                 )
             )
         );
@@ -44,5 +53,26 @@ class FixedFeeStrategyTest extends TestCase
             ['200.00', '0.0600'],
             ['10000.00', '3.0000'],
         ];
+    }
+
+    /**
+     * Two policies sharing the implementation class must stay independent.
+     */
+    public function testInstancesAreIndependent()
+    {
+        $other = new FixedFeeStrategy('0.5', 4);
+
+        $transaction = new Transaction(
+            new User('1', UserType::business()),
+            new Operation(
+                '2014-12-31',
+                OperationType::withdraw(),
+                Amount::fromString('200.00'),
+                Currency::fromString('EUR')
+            )
+        );
+
+        $this->assertEquals('1.0000', $other->calculate($transaction));
+        $this->assertEquals('0.0600', $this->strategy->calculate($transaction));
     }
 }

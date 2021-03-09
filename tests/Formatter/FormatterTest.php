@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Tests\Formatter;
+namespace App\Tests\Formatter;
 
-use App\CommissionTask\Formatter\Formatter;
+use App\Formatter\Formatter;
 use PHPUnit\Framework\TestCase;
 
 

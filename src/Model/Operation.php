@@ -2,22 +2,48 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Model;
+namespace App\Model;
 
-class Operation
+final class Operation
 {
-    public string $date;
-    public string $type;
-    public string $amount;
-    public string $currency;
-    public string $rate;
+    public const DATE_FORMAT = 'Y-m-d';
 
-    public function __construct(string $date, string $type, string $amount, string $currency, string $rate)
+    private string $date;
+    private OperationType $type;
+    private Amount $amount;
+    private Currency $currency;
+
+    public function __construct(string $date, OperationType $type, Amount $amount, Currency $currency)
     {
+        $parsed = \DateTimeImmutable::createFromFormat('!'.self::DATE_FORMAT, $date);
+
+        if (false === $parsed || $parsed->format(self::DATE_FORMAT) !== $date) {
+            throw new \InvalidArgumentException(sprintf('Not a valid date "%s", expected format %s', $date, self::DATE_FORMAT));
+        }
+
         $this->date = $date;
         $this->type = $type;
         $this->amount = $amount;
         $this->currency = $currency;
-        $this->rate = $rate;
+    }
+
+    public function getDate(): string
+    {
+        return $this->date;
+    }
+
+    public function getType(): OperationType
+    {
+        return $this->type;
+    }
+
+    public function getAmount(): Amount
+    {
+        return $this->amount;
+    }
+
+    public function getCurrency(): Currency
+    {
+        return $this->currency;
     }
 }

@@ -2,16 +2,30 @@
 
 declare(strict_types=1);
 
-namespace App\CommissionTask\Model;
+namespace App\Model;
 
-class User
+final class User
 {
-    public string $id;
-    public string $type;
+    private string $id;
+    private UserType $type;
 
-    public function __construct(string $id, string $type)
+    public function __construct(string $id, UserType $type)
     {
+        if ('' === $id) {
+            throw new \InvalidArgumentException('User id must not be empty');
+        }
+
         $this->id = $id;
         $this->type = $type;
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getType(): UserType
+    {
+        return $this->type;
     }
 }
