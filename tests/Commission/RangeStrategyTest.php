@@ -34,7 +34,12 @@ class RangeStrategyTest extends TestCase
         $dataProvider->method('getTotalAmountAndTransactionCount')
             ->willReturn([$amountPerWeek, $withdrawCountPerWeek]);
 
-        $strategy = new RangeStrategy($rangeCalculator,$dataProvider, '0.3', '1000.00',3, 4);
+        $strategy = new RangeStrategy($rangeCalculator, $dataProvider, 4);
+        $strategy->setOptions([
+            'fee' => '0.3',
+            'freeAmountPerWeek' => '1000.00',
+            'freeWithdrawCountPerWeek' => '3'
+        ]);
 
         $this->assertEquals(
             $expectation,

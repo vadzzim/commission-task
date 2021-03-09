@@ -16,7 +16,10 @@ class FixedFeeStrategyTest extends TestCase
 
     public function setUp(): void
     {
-        $this->strategy = new FixedFeeStrategy('0.03', 4);
+        $this->strategy = new FixedFeeStrategy(4);
+        $this->strategy->setOptions([
+            'fee' => '0.03',
+        ]);
     }
 
     /**

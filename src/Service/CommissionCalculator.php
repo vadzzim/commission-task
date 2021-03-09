@@ -4,36 +4,48 @@ declare(strict_types=1);
 
 namespace App\Service;
 
-use App\Commission\CommissionInterface;
+use App\Commission\StrategyContext;
 use App\Exception\OperationUserException;
+use App\Exception\OptionException;
 use App\Model\Transaction;
 
 class CommissionCalculator
 {
-    private CommissionInterface $depositPrivateStrategy;
-    private CommissionInterface $depositBusinessStrategy;
-    private CommissionInterface $withdrawPrivateStrategy;
-    private CommissionInterface $withdrawBusinessStrategy;
+    const POSSIBLE_STRATEGIES = [
+        'depositPrivate',
+        'depositBusiness',
+        'withdrawPrivate',
+        'withdrawBusiness',
+    ];
+
+    private array $strategies = [];
+
+    private StrategyContext $strategyContext;
 
     public function __construct(
-        CommissionInterface $depositPrivateStrategy,
-        CommissionInterface $depositBusinessStrategy,
-        CommissionInterface $withdrawPrivateStrategy,
-        CommissionInterface $withdrawBusinessStrategy
+        StrategyContext $strategyContext,
+        array $data
     ) {
-        $this->depositPrivateStrategy = $depositPrivateStrategy;
-        $this->depositBusinessStrategy = $depositBusinessStrategy;
-        $this->withdrawPrivateStrategy = $withdrawPrivateStrategy;
-        $this->withdrawBusinessStrategy = $withdrawBusinessStrategy;
+        $this->strategyContext = $strategyContext;
+
+        foreach (self::POSSIBLE_STRATEGIES as $key) {
+            if (!key_exists($key, $data)) {
+                throw new OptionException(sprintf('CommissionCalculator $data should have key "%s"', $key));
+            }
+
+            $options = $data[$key];
+            $this->strategies[$key] = $strategyContext->getStrategy($options['strategy']);
+            $this->strategies[$key]->setOptions($options);
+        }
     }
 
     public function calculate(Transaction $transaction): string
     {
-        $strategy = $transaction->operation->type.ucfirst($transaction->user->type).'Strategy';
+        $strategy = $transaction->operation->type.ucfirst($transaction->user->type);
 
-        if (!property_exists($this, $strategy)) {
+        if (!key_exists($strategy, $this->strategies)) {
             $message = sprintf(
-                'Combination operationType "%s" userType "%s" not supported',
+                'Combination OperationType "%s" and UserType "%s" not supported',
                 $transaction->operation->type,
                 $transaction->user->type
             );
@@ -41,6 +53,6 @@ class CommissionCalculator
             throw new OperationUserException($message);
         }
 
-        return $this->$strategy->calculate($transaction);
+        return $this->strategies[$strategy]->calculate($transaction);
     }
 }

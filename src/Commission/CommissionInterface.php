@@ -9,4 +9,6 @@ use App\Model\Transaction;
 interface CommissionInterface
 {
     public function calculate(Transaction $transaction): string;
+
+    public function setOptions(array $options): void;
 }

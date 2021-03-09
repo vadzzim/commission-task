@@ -10,9 +10,9 @@ class TransactionDataProvider implements RangeStrategyDataProviderInterface
 {
     private int $scale;
 
-    public function __construct(int $scale)
+    public function __construct(int $bcmathScale)
     {
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     private array $storage = [];

@@ -6,20 +6,22 @@ namespace App\Commission;
 
 use App\Model\Transaction;
 
-class FixedFeeStrategy implements CommissionInterface
+class FixedFeeStrategy extends CommissionStrategy
 {
-    private string $fee;
+    protected array $requiredOptions = [
+        'fee',
+    ];
+
     private int $scale;
 
-    public function __construct(string $fee, int $scale)
+    public function __construct(int $bcmathScale)
     {
-        $this->fee = $fee;
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     public function calculate(Transaction $transaction): string
     {
-        $commission = bcmul($transaction->operation->amount, $this->fee, $this->scale);
+        $commission = bcmul($transaction->operation->amount, $this->options['fee'], $this->scale);
 
         return bcdiv($commission, '100', $this->scale);
     }

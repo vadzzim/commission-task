@@ -7,29 +7,26 @@ namespace App\Commission;
 use App\DataProvider\RangeStrategyDataProviderInterface;
 use App\Model\Transaction;
 
-class RangeStrategy implements CommissionInterface
+class RangeStrategy extends CommissionStrategy
 {
+    protected array $requiredOptions = [
+        'fee',
+        'freeAmountPerWeek',
+        'freeWithdrawCountPerWeek',
+    ];
+
     private RangeCalculatorInterface $rangeCalculator;
     private RangeStrategyDataProviderInterface $dataProvider;
-    private string $fee;
-    private string $freeAmountPerWeek;
-    private int $freeWithdrawCountPerWeek;
     private int $scale;
 
     public function __construct(
         RangeCalculatorInterface $rangeCalculator,
         RangeStrategyDataProviderInterface $dataProvider,
-        string $fee,
-        string $freeAmountPerWeek,
-        int $freeWithdrawCountPerWeek,
-        int $scale
+        int $bcmathScale
     ) {
         $this->rangeCalculator = $rangeCalculator;
         $this->dataProvider = $dataProvider;
-        $this->fee = $fee;
-        $this->freeAmountPerWeek = $freeAmountPerWeek;
-        $this->freeWithdrawCountPerWeek = $freeWithdrawCountPerWeek;
-        $this->scale = $scale;
+        $this->scale = $bcmathScale;
     }
 
     public function calculate(Transaction $transaction): string
@@ -40,12 +37,12 @@ class RangeStrategy implements CommissionInterface
         [$perWeekAmount, $perWeekCount] = $this->dataProvider->getTotalAmountAndTransactionCount(
             $user->id, $operation->type, $weekStart, $weekEnd
         );
-        $freeAmountPerWeekAfterConversion = bcmul($this->freeAmountPerWeek, $operation->rate, $this->scale);
+        $freeAmountPerWeekAfterConversion = bcmul($this->options['freeAmountPerWeek'], $operation->rate, $this->scale);
         $perWeekAmountAfterConversion = bcmul($perWeekAmount, $operation->rate, $this->scale);
 
         if (
             $perWeekAmountAfterConversion > $freeAmountPerWeekAfterConversion
-            || $perWeekCount >= $this->freeWithdrawCountPerWeek
+            || $perWeekCount >= $this->options['freeWithdrawCountPerWeek']
         ) {
             // standard fee
             $amountForFee = $operation->amount;
@@ -61,7 +58,7 @@ class RangeStrategy implements CommissionInterface
             }
         }
 
-        $commission = bcmul($amountForFee, $this->fee, $this->scale);
+        $commission = bcmul($amountForFee, $this->options['fee'], $this->scale);
 
         return bcdiv($commission, '100', $this->scale);
     }

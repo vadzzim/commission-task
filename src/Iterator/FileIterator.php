@@ -24,7 +24,7 @@ class FileIterator implements \IteratorAggregate
     {
         $handel = fopen($this->file, 'rb');
         if (false === $handel) {
-            throw new \Exception('Error Processing');
+            throw new NotValidCvsFileException(sprintf('Error Processing file "%s', $this->file));
         }
 
         while (false === feof($handel)) {
