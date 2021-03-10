@@ -1,6 +1,6 @@
 # Commission task
 
-You can find parameters for commissions fee and limits in `config/services.yml`
+You can find parameters for commissions fee and limits in `config/services.yaml`
 ```
 parameters:
     bcmath.scale: 4
@@ -16,28 +16,43 @@ parameters:
 
 There are 2 types of strategies. `FixedFeeStrategy` and `RangeStrategy`.
 
-`CommissionCalculator` receive 4 Strategies (for depositPrivate, depositBusiness, withdrawPrivate, withdrawBusiness clients).
+A *commission policy* is a configured strategy instance. Every policy gets its own
+instance, configured through the constructor, and is registered under its business
+identity (`<operationType>.<userType>`) with the `app.commission_policy` tag:
+
+```
+    app.commission.deposit_private:
+        class: App\Commission\FixedFeeStrategy
+        arguments:
+            $fee: '%deposit.private.fee%'
+        tags:
+            - { name: app.commission_policy, policy: 'deposit.private' }
+```
+
+`CommissionCalculator` receives those policies indexed by that tag attribute and
+requires one for every combination of operation type and user type:
+
+```
+    App\Service\CommissionCalculator:
+        class: App\Service\CommissionCalculator
+        arguments:
+            $policies: !tagged_iterator { tag: app.commission_policy, index_by: policy }
+```
 
 It's configured the following way now:
-- depositPrivate - `FixedFeeStrategy` with `deposit.private.fee`  
-- depositBusiness - `FixedFeeStrategy` with `deposit.business.fee`
-- withdrawPrivate - `RangeStrategy` with `withdraw.private.fee`, `withdraw.private.free.amount.per.week`, `withdraw.private.free.count.per.week`   
-- withdrawBusiness - `FixedFeeStrategy` with `withdraw.business.fee`
+- deposit.private - `FixedFeeStrategy` with `deposit.private.fee`
+- deposit.business - `FixedFeeStrategy` with `deposit.business.fee`
+- withdraw.private - `RangeStrategy` with `withdraw.private.fee`, `withdraw.private.free.amount.per.week`, `withdraw.private.free.count.per.week`
+- withdraw.business - `FixedFeeStrategy` with `withdraw.business.fee`
 
 `RangeStrategy` receive `RangeCalculator`. It's `WeeklyRange` (from Monday to Sunday) now.
 
 If you'd like for example Month range or 7 last days. You can implement  `RangeCalculatorInterface` and easily configure.
-Also you can create a new different strategy (implement `CommissionInterface`) and pass it to `CommissionCalculator`.  
-
-## Commission printer
-
-Run `php script.php input.csv` to print commissions from csv file. `CommissionPrinter->print(iterable $transactions)` accept any iterable $transactions. 
-So if you decide print commission from another source. It's easy configured.
-
-You can configure `CommissionPrinter` to use `FixedRateDataProvider` if you'd like to test something with hardcoded rates. 
+Also you can create a new different strategy (implement `CommissionInterface`) and register it as a policy with the `app.commission_policy` tag.
 
 ## Commands:
-- `docker build -t commission-task .`
-- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php application.php app:print-commission assets/input.csv`
-- `composer run phpunit` - run phpunit;
-- `php application.php app:print-commission assets/input.csv` - print commissions;
+- `docker-compose up -d`
+- `docker-compose exec commission-task composer install` - install php dependies
+- `docker-compose exec commission-task php app.php app:print-commission assets/input.csv` - print commissions
+- `docker-compose exec commission-task php composer run phpunit` - run phpunit;
+- `docker-compose down` - stop container
