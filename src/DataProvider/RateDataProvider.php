@@ -13,6 +13,10 @@ class RateDataProvider implements RateInterface
 
     public function __construct(string $url)
     {
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            throw new NoRateException(sprintf('Not valid API url "%s"', $url));
+        }
+
         $this->url = $url;
     }
 
