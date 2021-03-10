@@ -8,10 +8,8 @@ use App\DataProvider\RateInterface;
 use App\DataProvider\TransactionHistoryInterface;
 use App\Exception\FileNotExistsException;
 use App\Exception\NoRateException;
-use App\Exception\NotValidCvsFileException;
-use App\Exception\OperationUserException;
 use App\Formatter\Formatter;
-use App\Iterator\FileIterator;
+use App\Iterator\FileContext;
 use App\Model\Currency;
 use App\Service\CommissionCalculator;
 use Symfony\Component\Console\Command\Command;
@@ -27,12 +25,14 @@ class PrintCommissionCommand extends Command
     private RateInterface $rateDataProvider;
     private TransactionHistoryInterface $transactionHistory;
     private Formatter $formatter;
+    private FileContext $fileContext;
     private Currency $baseCurrency;
 
     public function __construct(
         CommissionCalculator $commissionCalculator,
         RateInterface $rateDataProvider,
         TransactionHistoryInterface $transactionHistory,
+        FileContext $fileContext,
         Formatter $formatter,
         string $baseCurrency
     ) {
@@ -40,6 +40,7 @@ class PrintCommissionCommand extends Command
         $this->rateDataProvider = $rateDataProvider;
         $this->transactionHistory = $transactionHistory;
         $this->formatter = $formatter;
+        $this->fileContext = $fileContext;
         $this->baseCurrency = Currency::fromString($baseCurrency);
 
         parent::__construct();
@@ -63,7 +64,7 @@ class PrintCommissionCommand extends Command
                 throw new FileNotExistsException(sprintf('File "%s" does not exist', $pathToFile));
             }
 
-            $transactions = new FileIterator($pathToFile);
+            $transactions = $this->fileContext->getTransactions($pathToFile);
 
             foreach ($transactions as $transaction) {
                 $currency = $transaction->getOperation()->getCurrency();
@@ -75,22 +76,6 @@ class PrintCommissionCommand extends Command
 
                 $output->writeln($fmtValue);
             }
-        } catch (OperationUserException $e) {
-            $output->writeln($e);
-
-            return Command::FAILURE;
-        } catch (NotValidCvsFileException $e) {
-            $output->writeln($e);
-
-            return Command::FAILURE;
-        } catch (FileNotExistsException $e) {
-            $output->writeln($e);
-
-            return Command::FAILURE;
-        } catch (NoRateException $e) {
-            $output->writeln($e);
-
-            return Command::FAILURE;
         } catch (\Exception $e) {
             $output->writeln($e);
 

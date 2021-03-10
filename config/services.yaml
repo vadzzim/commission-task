@@ -18,9 +18,18 @@ services:
             $bcmathScale: '%bcmath.scale%'
             $baseCurrency: '%base.currency%'
 
+    _instanceof:
+        App\Iterator\FileStrategyInterface:
+            tags: ['app.file_strategy']
+
     App\:
         resource: '../src/*'
         exclude: '../src/{Model,Kernel.php}'
+
+    App\Iterator\FileContext:
+        class: App\Iterator\FileContext
+        arguments:
+            - !tagged_iterator app.file_strategy
 
     Symfony\Contracts\HttpClient\HttpClientInterface:
         factory: ['Symfony\Component\HttpClient\HttpClient', 'create']

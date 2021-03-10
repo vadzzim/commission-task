@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace App\Tests\Iterator;
 
 use App\Exception\NotValidCvsFileException;
-use App\Iterator\FileIterator;
+use App\Iterator\CsvIterator;
 use App\Model\OperationType;
 use App\Model\UserType;
 use PHPUnit\Framework\TestCase;
 
-class FileIteratorTest extends TestCase
+class CsvIteratorTest extends TestCase
 {
     /** @var string[] */
     private array $files = [];
@@ -84,6 +84,6 @@ class FileIteratorTest extends TestCase
         $this->files[] = $file;
         file_put_contents($file, $content);
 
-        return (new FileIterator($file))->getIterator();
+        return (new CsvIterator($file))->getIterator();
     }
 }
