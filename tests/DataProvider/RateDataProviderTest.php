@@ -70,4 +70,11 @@ class RateDataProviderTest extends TestCase
             'rates is not a map' => [new MockResponse('{"rates":"none"}')],
         ];
     }
+
+    public function testInvalidUrlIsRejectedOnConstruction()
+    {
+        $this->expectException(NoRateException::class);
+
+        new RateDataProvider(new MockHttpClient(), 'not an url');
+    }
 }

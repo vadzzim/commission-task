@@ -16,6 +16,10 @@ class RateDataProvider implements RateInterface
 
     public function __construct(HttpClientInterface $httpClient, string $url)
     {
+        if (filter_var($url, FILTER_VALIDATE_URL) === false) {
+            throw new NoRateException(sprintf('Not valid API url "%s"', $url));
+        }
+
         $this->httpClient = $httpClient;
         $this->url = $url;
     }
@@ -34,7 +38,7 @@ class RateDataProvider implements RateInterface
             throw new NoRateException(sprintf('API call failure "%s": %s', $this->url, $e->getMessage()), 0, $e);
         }
 
-        if (!key_exists('rates', $payload) || !is_array($payload['rates'])) {
+        if (!array_key_exists('rates', $payload) || !is_array($payload['rates'])) {
             throw new NoRateException(sprintf('API call failure "%s". No "rates" key.', $this->url));
         }
 
