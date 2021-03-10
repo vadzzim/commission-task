@@ -9,7 +9,7 @@ use App\Model\Operation;
 use App\Model\Transaction;
 use App\Model\User;
 
-class FileIterator implements \IteratorAggregate
+class CsvIterator implements \IteratorAggregate
 {
     const COLUMN_COUNT = 6;
 

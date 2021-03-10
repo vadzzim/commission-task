@@ -21,6 +21,8 @@ services:
     _instanceof:
         App\Commission\CommissionInterface:
             tags: ['app.commission_strategy']
+        App\Iterator\FileStrategyInterface:
+            tags: ['app.file_strategy']
 
     App\:
         resource: '../src/*'
@@ -30,6 +32,11 @@ services:
         class: App\Commission\StrategyContext
         arguments:
             - !tagged_iterator app.commission_strategy
+
+    App\Iterator\FileContext:
+        class: App\Iterator\FileContext
+        arguments:
+            - !tagged_iterator app.file_strategy
 
     App\DataProvider\RateDataProvider:
         class: App\DataProvider\RateDataProvider
