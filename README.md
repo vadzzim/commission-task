@@ -16,7 +16,28 @@ parameters:
 
 There are 2 types of strategies. `FixedFeeStrategy` and `RangeStrategy`.
 
-`CommissionCalculator` receive 4 Strategies (for depositPrivate, depositBusiness, withdrawPrivate, withdrawBusiness clients).
+`CommissionCalculator` receive 4 parameters with options (for depositPrivate, depositBusiness, withdrawPrivate, withdrawBusiness clients).
+
+```
+    App\Service\CommissionCalculator:
+        class: App\Service\CommissionCalculator
+        arguments:
+            $data:
+                depositPrivate:
+                    strategy: App\Commission\FixedFeeStrategy
+                    fee: '%deposit.private.fee%'
+                depositBusiness:
+                    strategy: App\Commission\FixedFeeStrategy
+                    fee: '%deposit.business.fee%'
+                withdrawPrivate:
+                    strategy: App\Commission\RangeStrategy
+                    fee: '%withdraw.private.fee%'
+                    freeAmountPerWeek: '%withdraw.private.free.amount.per.week%'
+                    freeWithdrawCountPerWeek: '%withdraw.private.free.count.per.week%'
+                withdrawBusiness:
+                    strategy: App\Commission\FixedFeeStrategy
+                    fee: '%withdraw.business.fee%'
+```
 
 It's configured the following way now:
 - depositPrivate - `FixedFeeStrategy` with `deposit.private.fee`  
@@ -27,17 +48,9 @@ It's configured the following way now:
 `RangeStrategy` receive `RangeCalculator`. It's `WeeklyRange` (from Monday to Sunday) now.
 
 If you'd like for example Month range or 7 last days. You can implement  `RangeCalculatorInterface` and easily configure.
-Also you can create a new different strategy (implement `CommissionInterface`) and pass it to `CommissionCalculator`.  
-
-## Commission printer
-
-Run `php script.php input.csv` to print commissions from csv file. `CommissionPrinter->print(iterable $transactions)` accept any iterable $transactions. 
-So if you decide print commission from another source. It's easy configured.
-
-You can configure `CommissionPrinter` to use `FixedRateDataProvider` if you'd like to test something with hardcoded rates. 
+Also you can create a new different strategy (implement `CommissionInterface`) and pass it to `CommissionCalculator`.   
 
 ## Commands:
 - `docker build -t commission-task .`
-- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php application.php app:print-commission assets/input.csv`
-- `composer run phpunit` - run phpunit;
-- `php application.php app:print-commission assets/input.csv` - print commissions;
+- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php application.php app:print-commission assets/input.csv` - print commissions
+- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php composer run phpunit` - run phpunit;
