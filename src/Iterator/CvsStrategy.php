@@ -12,11 +12,7 @@ class CvsStrategy implements FileStrategyInterface
     {
         $info = pathinfo($file);
 
-        if (self::FILE_EXTENSION === $info['extension']) {
-            return true;
-        }
-
-        return false;
+        return self::FILE_EXTENSION === $info['extension'];
     }
 
     public function getTransactions(string $file): \Traversable

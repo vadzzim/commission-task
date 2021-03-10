@@ -15,7 +15,7 @@ class StrategyContext
         foreach ($strategies as $strategy) {
             $key = get_class($strategy);
 
-            if (key_exists($key, $this->strategies)) {
+            if (array_key_exists($key, $this->strategies)) {
                 throw new StrategyException(sprintf('Strategy already exist with key "%s"', $key));
             }
 
@@ -25,7 +25,7 @@ class StrategyContext
 
     public function getStrategy(string $key): CommissionInterface
     {
-        if (!key_exists($key, $this->strategies)) {
+        if (!array_key_exists($key, $this->strategies)) {
             throw new StrategyException(sprintf('Strategy "%s" does not exist', $key));
         }
 

@@ -20,16 +20,10 @@ class CommissionCalculator
 
     private array $strategies = [];
 
-    private StrategyContext $strategyContext;
-
-    public function __construct(
-        StrategyContext $strategyContext,
-        array $data
-    ) {
-        $this->strategyContext = $strategyContext;
-
+    public function __construct(StrategyContext $strategyContext, array $data)
+    {
         foreach (self::POSSIBLE_STRATEGIES as $key) {
-            if (!key_exists($key, $data)) {
+            if (!array_key_exists($key, $data)) {
                 throw new OptionException(sprintf('CommissionCalculator $data should have key "%s"', $key));
             }
 
@@ -43,7 +37,7 @@ class CommissionCalculator
     {
         $strategy = $transaction->operation->type.ucfirst($transaction->user->type);
 
-        if (!key_exists($strategy, $this->strategies)) {
+        if (!array_key_exists($strategy, $this->strategies)) {
             $message = sprintf(
                 'Combination OperationType "%s" and UserType "%s" not supported',
                 $transaction->operation->type,

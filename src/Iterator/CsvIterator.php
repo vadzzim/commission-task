@@ -35,10 +35,10 @@ class CsvIterator implements \IteratorAggregate
             }
 
             if (self::COLUMN_COUNT !== count($row)) {
-                throw new NotValidCvsFileException(sprintf('Not valid line "%s"', join(',', $row)));
+                throw new NotValidCvsFileException(sprintf('Not valid line "%s"', implode(',', $row)));
             }
 
-            list($date, $userId, $userType, $operationType, $operationAmount, $operationCurrency) = $row;
+            [$date, $userId, $userType, $operationType, $operationAmount, $operationCurrency] = $row;
 
             yield new Transaction(
                 new User($userId, $userType),

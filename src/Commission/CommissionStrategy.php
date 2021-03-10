@@ -23,7 +23,7 @@ abstract class CommissionStrategy implements CommissionInterface
     protected function validateOptions(array $options): void
     {
         foreach ($this->requiredOptions as $option) {
-            if (!key_exists($option, $options)) {
+            if (!array_key_exists($option, $options)) {
                 throw new OptionException(sprintf('Required option "%s" is missed', $option));
             }
         }

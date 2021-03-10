@@ -32,9 +32,13 @@ class RateDataProvider implements RateInterface
             throw new NoRateException(sprintf('API call failure "%s"', $this->url));
         }
 
-        $json = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        try {
+            $json = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+        } catch (\Exception $e) {
+            throw new NoRateException(sprintf('JSON decode fail "%s"', $this->url));
+        }
 
-        if (!key_exists('rates', $json) || !is_array($json['rates'])) {
+        if (!array_key_exists('rates', $json) || !is_array($json['rates'])) {
             throw new NoRateException(sprintf('API call failure "%s". No "rates" key.', $this->url));
         }
 
