@@ -51,6 +51,6 @@ If you'd like for example Month range or 7 last days. You can implement  `RangeC
 Also you can create a new different strategy (implement `CommissionInterface`) and pass it to `CommissionCalculator`.   
 
 ## Commands:
-- `docker build -t commission-task .`
-- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php application.php app:print-commission assets/input.csv` - print commissions
-- `docker run -it --rm --name my-running-script -v "$PWD":/usr/src/myapp -w /usr/src/myapp commission-task php composer run phpunit` - run phpunit;
+- `docker-compose up`
+- `docker-compose exec commission-task php app.php app:print-commission assets/input.csv` - print commissions
+- `docker-compose exec commission-task php composer run phpunit` - run phpunit;

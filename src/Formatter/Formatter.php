@@ -17,6 +17,10 @@ class Formatter
         $fmt->setTextAttribute(NumberFormatter::CURRENCY_CODE, $currency);
         $fmt->setSymbol(NumberFormatter::CURRENCY_SYMBOL, '');
 
+        $pattern = $fmt->getPattern();
+        $newPattern = str_replace('¤ ', '', $pattern);
+        $fmt->setPattern($newPattern);
+
         return $fmt->format($value);
     }
 }
