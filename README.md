@@ -52,6 +52,7 @@ Also you can create a new different strategy (implement `CommissionInterface`) a
 
 ## Commands:
 - `docker-compose up -d`
+- `docker-compose exec commission-task composer install` - install php dependies
 - `docker-compose exec commission-task php app.php app:print-commission assets/input.csv` - print commissions
 - `docker-compose exec commission-task php composer run phpunit` - run phpunit;
 - `docker-compose down` - stop container
